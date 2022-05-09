@@ -10,10 +10,23 @@ import scipy
 import scipy.misc
 import scipy.cluster
 from replit import db
+from datetime import datetime,timedelta
 
+lastpp=datetime.now()
 intents = discord.Intents().all()
 client = commands.Bot(command_prefix='!', intents=intents)
-name_dict = {'aonkeeper4':'dylan','DerpyChicken86':'henry','greenlemonworm':'lime','fluctuatingworm':'harry','ill_clap_ur_nan':'seb','nebula_beann':'nico','RocksEatSocks':'rachel','blue!':'blue','worm.child':'lime','generic':'johnny','threapster':'toby'}
+name_dict = {
+    'aonkeeper4':'dylan',
+    'DerpyChicken86':'henry',
+    'greenlemonworm':'lime',
+    #'fluctuatingworm':'harry', # fuck you bitch
+    'ill_clap_ur_nan':'seb',
+    'nebula_beann':'nico',
+    'RocksEatSocks':'rachel',
+    'blue!':'blue',
+    'worm.child':'lime',
+    'generic':'johnny',
+    'threapster':'toby'}
 bads=[]
 
 def get_bads():
@@ -58,16 +71,20 @@ async def pg(ctx,message_id=None):
         await msg.channel.send("No need to clean")
 
 async def pp_enlarge(ctx, msg):
+    global lastpp
+
     if any(pp in msg.content.lower() for pp in ['pp', 'dick', 'cock', 'willy', 'penis', 'schlong', 'dicc', 'cocc', 'balls', 'weiner']):
+        if datetime.now()-lastpp<timedelta(seconds=10):
+            await msg.reply(file=discord.File("/home/runner/discord-bot/shank.png", filename="shank.png"))
+            return
+        lastpp=datetime.now()
         try:
-            pp_length = db[msg.author.id]
+            pp_length = db[str(msg.author.id)]
         except KeyError:
             pp_length = 0
         pp_length += 1
         await ctx.send('8'+'='*pp_length+'D')
-        db[msg.author.id] = pp_length
-    else:
-        await client.process_commands(msg)
+        db[str(msg.author.id)] = pp_length
 
 async def putSus(ctx):
     if ctx.content=="!whosus" or client.user.id==ctx.author.id:
@@ -121,8 +138,6 @@ async def pollresults(ctx):
         results[vote.split("-")[1].rstrip("\n")]=results[vote.split("-")[1].rstrip("\n")]+1
     for k in results:
         await ctx.channel.send(k+": "+str(results[k]))
-
-
 
 async def incorrectquote(ctx, *, people=None):
     import random
@@ -199,13 +214,13 @@ async def bean(ctx):
         f.write(str(bc+1))
     await ctx.channel.send("Added 1 bean to the bean pile! The bean count is now "+str(bc+1))
    
-@client.command()
+#@client.command()
 async def countdown(ctx):
     import datetime
     await ctx.channel.send("\\:(")
     await ctx.channel.send(str((datetime.datetime(2023,1,8)-datetime.datetime.now()).days)+" days to go")
 
-pg_days=("Musical Monday","Trigonometry Tuesday","PG Wednesday","Circumcision Thursday","Femboy Friday","Sacrificial Saturday","Sussalicious Sunday")
+pg_days=("Manifestation Monday","Trigonometry Tuesday","PG Wednesday","Circumcision Thursday","Femboy Fornication Friday","Sacrificial Saturday","Sussalicious Sunday")
 @client.command()
 async def day(ctx):
     import datetime
@@ -305,7 +320,6 @@ async def get_palette_file_embed(ctx, block):
         img_tags = soup.find_all('img', 'block')
         urls = ['https://blockpalettes.com'+img['src'][2:] for img in img_tags][:6]
     else:
-        # TODO: fix this so we dont need the loop
         palettes_div = soup.find('div', 'palettes')
         palettes = palettes_div.findChildren("div", {"class": "palette-float"})
         palette_addrs = [palette.find('a') for palette in palettes]
@@ -404,15 +418,10 @@ async def killpp(ctx, _id):
 
 @client.command()
 async def stop(ctx):
-    await client.logout()
-
-keep_alive.keep_alive()
-async def handleHTTPErr(e):
-    print(e.response.headers["Retry-After"]+" seconds until rate limiting over")
+    await client.close()
 
 import os
-try:
-    client.run(os.environ['token'])
-except discord.errors.HTTPException as e:
-    asyncio.run(handleHTTPErr(e))
+
+keep_alive.keep_alive()
+client.run(os.environ['token'])
 
