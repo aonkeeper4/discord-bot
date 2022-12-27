@@ -19,7 +19,6 @@ name_dict = {
     'aonkeeper4':'dylan',
     'DerpyChicken86':'henry',
     'greenlemonworm':'lime',
-    #'fluctuatingworm':'harry', # fuck you bitch
     'ill_clap_ur_nan':'seb',
     'nebula_beann':'nico',
     'RocksEatSocks':'rachel',
@@ -139,21 +138,31 @@ async def pollresults(ctx):
     for k in results:
         await ctx.channel.send(k+": "+str(results[k]))
 
+@client.command()
 async def incorrectquote(ctx, *, people=None):
     import random
     async with ctx.typing():
         if people is None:
-            people = [random.choice(list(name_dict.keys)) for i in range(random.randint(1, 6))]
+            people = random.sample(list(name_dict.values()), random.randint(1, 6))
         else:
             people = people.split(',')
+            if len(people) > 6:
+                await ctx.send(f"Too many people! (expected 1 - 6, got {len(people)})")
         
         from selenium import webdriver
-        chromedriver = '/home/dylan/.local/bin/chromedriver'
-        driver = webdriver.Chrome(chromedriver)
+        from selenium.webdriver.chrome.options import Options
+
+        chrome_options = Options()
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
+        
+        driver = webdriver.Chrome(options=chrome_options)
         URL = 'https://incorrect-quotes-generator.neocities.org/'
         driver.get(URL)
-        driver.execute_script("names = " + str(people) + "; i = 0; document.querySelectorAll('input[type=\"text\"]').forEach(function(e) { e.value = names[i]; i++ }); document.getElementById(\"txtCharacters\").selectedIndex = names.length-1; document.getElementById(\"btnGenerate\").click(); document.getElementById(\"lab\").innerText")
-
+        # wow hacky javascript injection! my favourite
+        res = driver.execute_script("names = " + str(people) + "; i = 0; document.querySelectorAll('input[type=\"text\"]').forEach(function(e) { e.value = names[i]; i++ }); document.getElementById(\"txtCharacters\").selectedIndex = names.length-1; document.getElementById(\"btnGenerate\").click(); return document.getElementById(\"lab\").innerText;")
+        await ctx.send(res)
+        
 @client.command()
 async def regenpp(ctx,p,pp):
     if str(ctx.author.id)=="756092813350928465":
