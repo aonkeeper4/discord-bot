@@ -125,7 +125,7 @@ async def currentpoll(ctx):
     l1=""
     with open("poll","r") as f:
         l1=f.readline().rstrip("\n")
-    await ctx.channel.send("Current vote: "+l1.split(":")[0]+"\nOptions:"+l1.split(":")[1])
+    await ctx.channel.send("broken")
 
 @client.command(help="Show the results of the poll")
 async def pollresults(ctx):
@@ -146,9 +146,13 @@ async def incorrectquote(ctx, *, people=None):
             people = [random.choice(list(name_dict.keys)) for i in range(random.randint(1, 6))]
         else:
             people = people.split(',')
-        site = 'https://blockpalettes.com/palette/'+str(random.randint(1, 3300)).zfill(4)
-        response = requests.get(site)
-        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        from selenium import webdriver
+        chromedriver = '/home/dylan/.local/bin/chromedriver'
+        driver = webdriver.Chrome(chromedriver)
+        URL = 'https://incorrect-quotes-generator.neocities.org/'
+        driver.get(URL)
+        driver.execute_script("names = " + str(people) + "; i = 0; document.querySelectorAll('input[type=\"text\"]').forEach(function(e) { e.value = names[i]; i++ }); document.getElementById(\"txtCharacters\").selectedIndex = names.length-1; document.getElementById(\"btnGenerate\").click(); document.getElementById(\"lab\").innerText")
 
 @client.command()
 async def regenpp(ctx,p,pp):
@@ -201,7 +205,7 @@ async def on_message(msg):
         await putSus(msg)
         await censor(msg)
     except discord.errors.HTTPException as e:
-        await handleHTTPErr(e)
+        await msg.channel.send("uh oh web no worky")
     finally:
         await client.process_commands(msg)
 
